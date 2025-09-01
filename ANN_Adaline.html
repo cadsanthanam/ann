@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Neural Network Learning Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .tabs {
+        display: flex;
+        background: #f0f0f0;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 20px;
+        background: #f0f0f0;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #555;
+        transition: all 0.3s;
+      }
+
+      .tab:hover {
+        background: #e0e0e0;
+      }
+
+      .tab.active {
+        background: white;
+        color: #667eea;
+        border-bottom: 3px solid #667eea;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .control-panel {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .control-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .input-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .input-group input {
+        width: 80px;
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .input-group span {
+        font-size: 14px;
+        color: #666;
+        min-width: 30px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-right: 10px;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-secondary {
+        background: #48bb78;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #38a169;
+      }
+
+      .btn-danger {
+        background: #f56565;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #ed5e5e;
+      }
+
+      .btn-info {
+        background: #4299e1;
+        color: white;
+      }
+
+      .btn-info:hover {
+        background: #3182ce;
+      }
+
+      .example-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .example-btn {
+        padding: 8px 16px;
+        background: #e2e8f0;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .example-btn:hover {
+        background: #cbd5e0;
+      }
+
+      .example-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #5a67d8;
+      }
+
+      .visualization-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+      }
+
+      .viz-panel {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+      }
+
+      .viz-panel h3 {
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .training-data {
+        margin-bottom: 20px;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ddd;
+      }
+
+      .data-table th {
+        background: #667eea;
+        color: white;
+        font-weight: 600;
+      }
+
+      .data-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      .current-row {
+        background: #ffd700 !important;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          background: #ffd700;
+        }
+        50% {
+          background: #ffed4e;
+        }
+        100% {
+          background: #ffd700;
+        }
+      }
+
+      .weight-display {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        border: 2px solid #e2e8f0;
+      }
+
+      .weight-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .weight-item:last-child {
+        border-bottom: none;
+      }
+
+      .weight-label {
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .weight-value {
+        font-family: 'Courier New', monospace;
+        color: #2d3748;
+        font-weight: bold;
+      }
+
+      .iteration-log {
+        max-height: 400px;
+        overflow-y: auto;
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        border: 2px solid #e2e8f0;
+      }
+
+      .log-entry {
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #f7fafc;
+        border-left: 4px solid #667eea;
+        border-radius: 4px;
+      }
+
+      .log-entry.error {
+        border-left-color: #f56565;
+      }
+
+      .log-entry.success {
+        border-left-color: #48bb78;
+      }
+
+      .formula-display {
+        background: #edf2f7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .explanation-box {
+        background: #e6fffa;
+        border-left: 4px solid #4299e1;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .explanation-box h4 {
+        color: #2c5282;
+        margin-bottom: 10px;
+      }
+
+      .explanation-box p {
+        color: #2d3748;
+        line-height: 1.6;
+      }
+
+      .canvas-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #e2e8f0;
+        text-align: center;
+      }
+
+      canvas {
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        max-width: 100%;
+      }
+
+      .stats-display {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+        margin-top: 5px;
+      }
+
+      .help-text {
+        font-size: 14px;
+        color: #718096;
+        margin-top: 5px;
+        font-style: italic;
+      }
+
+      .select-input {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+      }
+
+      .select-input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .network-diagram {
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      .info-message {
+        background: #fef2e8;
+        border-left: 4px solid #f6ad55;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        color: #744210;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🧠 Interactive Neural Network Learning Demo</h1>
+        <p>
+          Explore Perceptron, ADALINE, and MADALINE with Step-by-Step
+          Visualization
+        </p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('perceptron', this)">
+          Perceptron
+        </button>
+        <button class="tab" onclick="switchTab('adaline', this)">ADALINE</button>
+        <button class="tab" onclick="switchTab('madaline', this)">MADALINE</button>
+      </div>
+
+      <div class="content">
+        <!-- Perceptron Tab -->
+        <div id="perceptron" class="tab-content active">
+          <h2>Perceptron Learning Demonstration</h2>
+
+          <div class="explanation-box">
+            <h4>📚 What is a Perceptron?</h4>
+            <p>
+              A perceptron is the simplest neural network that makes binary
+              decisions (0 or 1). It learns by adjusting weights only when it
+              makes mistakes.
+            </p>
+            <p>
+              <strong>Key Formula:</strong> Output = Step(w₁x₁ + w₂x₂ + bias)
+            </p>
+            <p>
+              <strong>Learning Rule:</strong> If wrong, w_new = w_old + η ×
+              error × input
+            </p>
+          </div>
+
+          <div class="control-panel">
+            <h3>🎯 Select Example</h3>
+            <div class="example-selector">
+              <button
+                class="example-btn active"
+                onclick="loadPerceptronExample('and', this)"
+              >
+                AND Gate
+              </button>
+              <button class="example-btn" onclick="loadPerceptronExample('or', this)">
+                OR Gate
+              </button>
+              <button
+                class="example-btn"
+                onclick="loadPerceptronExample('classifier', this)"
+              >
+                2D Classifier
+              </button>
+            </div>
+
+            <div class="control-group">
+              <label>⚙️ Initial Parameters</label>
+              <div class="control-row">
+                <div class="input-group">
+                  <span>w₁:</span>
+                  <input type="number" id="p-w1" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>w₂:</span>
+                  <input type="number" id="p-w2" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>bias:</span>
+                  <input type="number" id="p-bias" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>η:</span>
+                  <input
+                    type="number"
+                    id="p-eta"
+                    value="0.5"
+                    step="0.1"
+                    min="0.1"
+                    max="1"
+                  />
+                </div>
+              </div>
+              <p class="help-text">
+                Try different initial weights: Small (0.1), Large (1.0), Random
+                (-0.5 to 0.5)
+              </p>
+            </div>
+
+            <div class="control-group">
+              <label>🎮 Training Controls</label>
+              <div class="control-row">
+                <button
+                  class="btn btn-primary"
+                  onclick="initializePerceptron()"
+                >
+                  Initialize
+                </button>
+                <button class="btn btn-secondary" onclick="stepPerceptron()">
+                  Step Forward
+                </button>
+                <button class="btn btn-info" onclick="runPerceptronEpoch()">
+                  Run Epoch
+                </button>
+                <button
+                  class="btn btn-danger"
+                  onclick="trainPerceptronComplete()"
+                >
+                  Train to Convergence
+                </button>
+              </div>
+              <div class="control-row" style="margin-top: 10px">
+                <div class="input-group">
+                  <span>Speed (ms):</span>
+                  <input
+                    type="number"
+                    id="p-speed"
+                    value="500"
+                    min="100"
+                    max="2000"
+                    step="100"
+                  />
+                </div>
+                <select
+                  id="p-preset"
+                  class="select-input"
+                  onchange="loadPreset('perceptron', this.value)"
+                >
+                  <option value="">Load Preset Weights...</option>
+                  <option value="small">Small Weights (0.1)</option>
+                  <option value="large">Large Weights (1.0)</option>
+                  <option value="random">Random Weights</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="visualization-area">
+            <div class="viz-panel">
+              <h3>📊 Training Data & Current State</h3>
+              <div id="p-training-data" class="training-data"></div>
+
+              <h3>🔧 Current Weights</h3>
+              <div class="weight-display">
+                <div class="weight-item">
+                  <span class="weight-label">w₁:</span>
+                  <span class="weight-value" id="p-current-w1">0.000</span>
+                </div>
+                <div class="weight-item">
+                  <span class="weight-label">w₂:</span>
+                  <span class="weight-value" id="p-current-w2">0.000</span>
+                </div>
+                <div class="weight-item">
+                  <span class="weight-label">bias:</span>
+                  <span class="weight-value" id="p-current-bias">0.000</span>
+                </div>
+              </div>
+
+              <div class="stats-display">
+                <div class="stat-card">
+                  <div class="stat-label">Epoch</div>
+                  <div class="stat-value" id="p-epoch">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Step</div>
+                  <div class="stat-value" id="p-step">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Errors</div>
+                  <div class="stat-value" id="p-errors">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Accuracy</div>
+                  <div class="stat-value" id="p-accuracy">0%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="viz-panel">
+              <h3>📝 Step-by-Step Calculations</h3>
+              <div id="p-current-calc" class="formula-display">
+                Click "Initialize" to start training
+              </div>
+
+              <h3>📜 Training Log</h3>
+              <div id="p-log" class="iteration-log">
+                <div class="log-entry">Ready to start training...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-container">
+            <h3>📈 Decision Boundary Visualization</h3>
+            <canvas id="p-canvas" width="400" height="400"></canvas>
+            <p class="help-text">
+              Watch how the decision boundary changes as the perceptron learns!
+            </p>
+          </div>
+        </div>
+
+        <!-- ADALINE Tab -->
+        <div id="adaline" class="tab-content">
+          <h2>ADALINE Learning Demonstration</h2>
+
+          <div class="explanation-box">
+            <h4>📚 What is ADALINE?</h4>
+            <p>
+              ADALINE (Adaptive Linear Neuron) uses continuous error feedback
+              for more stable learning. It updates weights based on the linear
+              output before applying the threshold.
+            </p>
+            <p>
+              <strong>Key Difference:</strong> Error = target - (w₁x₁ + w₂x₂ +
+              bias) [using linear output, not thresholded]
+            </p>
+            <p>
+              <strong>Learning Rule:</strong> w_new = w_old + η × error × input
+              (updates EVERY iteration)
+            </p>
+          </div>
+
+          <div class="control-panel">
+            <h3>🎯 Select Example</h3>
+            <div class="example-selector">
+              <button
+                class="example-btn active"
+                onclick="loadAdalineExample('and', this)"
+              >
+                AND Gate
+              </button>
+              <button class="example-btn" onclick="loadAdalineExample('or', this)">
+                OR Gate
+              </button>
+              <button
+                class="example-btn"
+                onclick="loadAdalineExample('classifier', this)"
+              >
+                2D Classifier
+              </button>
+            </div>
+
+            <div class="control-group">
+              <label>⚙️ Initial Parameters</label>
+              <div class="control-row">
+                <div class="input-group">
+                  <span>w₁:</span>
+                  <input type="number" id="a-w1" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>w₂:</span>
+                  <input type="number" id="a-w2" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>bias:</span>
+                  <input type="number" id="a-bias" value="0.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>η:</span>
+                  <input
+                    type="number"
+                    id="a-eta"
+                    value="0.1"
+                    step="0.01"
+                    min="0.01"
+                    max="0.5"
+                  />
+                </div>
+              </div>
+              <p class="help-text">
+                ADALINE typically uses smaller learning rates (0.01-0.1) for
+                stability
+              </p>
+            </div>
+
+            <div class="control-group">
+              <label>🎮 Training Controls</label>
+              <div class="control-row">
+                <button class="btn btn-primary" onclick="initializeAdaline()">
+                  Initialize
+                </button>
+                <button class="btn btn-secondary" onclick="stepAdaline()">
+                  Step Forward
+                </button>
+                <button class="btn btn-info" onclick="runAdalineEpoch()">
+                  Run Epoch
+                </button>
+                <button class="btn btn-danger" onclick="trainAdalineComplete()">
+                  Train to Convergence
+                </button>
+              </div>
+              <div class="control-row" style="margin-top: 10px">
+                <div class="input-group">
+                  <span>Speed (ms):</span>
+                  <input
+                    type="number"
+                    id="a-speed"
+                    value="500"
+                    min="100"
+                    max="2000"
+                    step="100"
+                  />
+                </div>
+                <div class="input-group">
+                  <span>MSE Threshold:</span>
+                  <input
+                    type="number"
+                    id="a-mse-threshold"
+                    value="0.01"
+                    step="0.001"
+                    min="0.001"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="visualization-area">
+            <div class="viz-panel">
+              <h3>📊 Training Data & Current State</h3>
+              <div id="a-training-data" class="training-data"></div>
+
+              <h3>🔧 Current Weights</h3>
+              <div class="weight-display">
+                <div class="weight-item">
+                  <span class="weight-label">w₁:</span>
+                  <span class="weight-value" id="a-current-w1">0.000</span>
+                </div>
+                <div class="weight-item">
+                  <span class="weight-label">w₂:</span>
+                  <span class="weight-value" id="a-current-w2">0.000</span>
+                </div>
+                <div class="weight-item">
+                  <span class="weight-label">bias:</span>
+                  <span class="weight-value" id="a-current-bias">0.000</span>
+                </div>
+              </div>
+
+              <div class="stats-display">
+                <div class="stat-card">
+                  <div class="stat-label">Epoch</div>
+                  <div class="stat-value" id="a-epoch">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">MSE</div>
+                  <div class="stat-value" id="a-mse">0.000</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Accuracy</div>
+                  <div class="stat-value" id="a-accuracy">0%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="viz-panel">
+              <h3>📝 Step-by-Step Calculations</h3>
+              <div id="a-current-calc" class="formula-display">
+                Click "Initialize" to start training
+              </div>
+
+              <h3>📜 Training Log</h3>
+              <div id="a-log" class="iteration-log">
+                <div class="log-entry">Ready to start training...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-container">
+            <h3>📈 MSE Convergence & Decision Boundary</h3>
+            <canvas id="a-canvas" width="800" height="400"></canvas>
+            <p class="help-text">
+              Left: MSE over epochs | Right: Decision boundary evolution
+            </p>
+          </div>
+        </div>
+
+        <!-- MADALINE Tab -->
+        <div id="madaline" class="tab-content">
+          <h2>MADALINE Learning Demonstration</h2>
+
+          <div class="explanation-box">
+            <h4>📚 What is MADALINE?</h4>
+            <p>
+              MADALINE (Many ADALINE) combines multiple ADALINE units to solve
+              non-linearly separable problems like XOR.
+            </p>
+            <p>
+              <strong>Architecture:</strong> Input Layer → Hidden Layer
+              (multiple ADALINEs) → Output Layer (logic combination)
+            </p>
+            <p>
+              <strong>Key Innovation:</strong> Can solve problems that single
+              perceptrons cannot!
+            </p>
+          </div>
+
+          <div class="info-message">
+            <strong>🔍 Focus on XOR Problem:</strong> MADALINE was specifically
+            designed to solve the XOR problem, which cannot be solved by a
+            single perceptron or ADALINE.
+          </div>
+
+          <div class="network-diagram">
+            <h3>Network Architecture</h3>
+            <canvas id="m-network" width="600" height="300"></canvas>
+          </div>
+
+          <div class="control-panel">
+            <h3>🎯 Example: XOR Gate</h3>
+            <p>
+              The XOR problem requires two hidden units to create the necessary
+              decision boundaries.
+            </p>
+
+            <div class="control-group">
+              <label>⚙️ Hidden Unit 1 (Detects x₁=1, x₂=0)</label>
+              <div class="control-row">
+                <div class="input-group">
+                  <span>w₁:</span>
+                  <input type="number" id="m-h1-w1" value="1.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>w₂:</span>
+                  <input type="number" id="m-h1-w2" value="-1.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>bias:</span>
+                  <input type="number" id="m-h1-bias" value="-0.5" step="0.1" />
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label>⚙️ Hidden Unit 2 (Detects x₁=0, x₂=1)</label>
+              <div class="control-row">
+                <div class="input-group">
+                  <span>w₁:</span>
+                  <input type="number" id="m-h2-w1" value="-1.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>w₂:</span>
+                  <input type="number" id="m-h2-w2" value="1.0" step="0.1" />
+                </div>
+                <div class="input-group">
+                  <span>bias:</span>
+                  <input type="number" id="m-h2-bias" value="-0.5" step="0.1" />
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label>⚙️ Output Layer</label>
+              <div class="control-row">
+                <select id="m-output-logic" class="select-input">
+                  <option value="or">OR (for XOR)</option>
+                  <option value="and">AND</option>
+                </select>
+                <div class="input-group">
+                  <span>Learning Rate:</span>
+                  <input
+                    type="number"
+                    id="m-eta"
+                    value="0.1"
+                    step="0.01"
+                    min="0.01"
+                    max="0.5"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label>🎮 Training Controls</label>
+              <div class="control-row">
+                <button class="btn btn-primary" onclick="initializeMadaline()">
+                  Initialize
+                </button>
+                <button class="btn btn-secondary" onclick="stepMadaline()">
+                  Step Forward
+                </button>
+                <button class="btn btn-info" onclick="trainMadalineComplete()">
+                  Train Complete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="visualization-area">
+            <div class="viz-panel">
+              <h3>📊 XOR Truth Table & Results</h3>
+              <div id="m-training-data" class="training-data"></div>
+
+              <h3>🔧 Hidden Unit Outputs</h3>
+              <div id="m-hidden-outputs" class="weight-display"></div>
+
+              <div class="stats-display">
+                <div class="stat-card">
+                  <div class="stat-label">Epoch</div>
+                  <div class="stat-value" id="m-epoch">0</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Accuracy</div>
+                  <div class="stat-value" id="m-accuracy">0%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="viz-panel">
+              <h3>📝 Network Computation</h3>
+              <div id="m-current-calc" class="formula-display">
+                Click "Initialize" to see network computations
+              </div>
+
+              <h3>📜 Training Log</h3>
+              <div id="m-log" class="iteration-log">
+                <div class="log-entry">Ready to demonstrate MADALINE...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-container">
+            <h3>📈 Decision Regions Visualization</h3>
+            <canvas id="m-canvas" width="400" height="400"></canvas>
+            <p class="help-text">
+              See how two hidden units create regions that solve XOR!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global variables for each network type
+      let perceptron = {
+        w1: 0,
+        w2: 0,
+        bias: 0,
+        eta: 0.5,
+        epoch: 0,
+        step: 0,
+        errors: 0,
+        currentSample: 0,
+        trainingData: [],
+        isTraining: false,
+      };
+
+      let adaline = {
+        w1: 0,
+        w2: 0,
+        bias: 0,
+        eta: 0.1,
+        epoch: 0,
+        step: 0,
+        mse: 0,
+        mseHistory: [],
+        currentSample: 0,
+        trainingData: [],
+        isTraining: false,
+      };
+
+      let madaline = {
+        hidden1: { w1: 1, w2: -1, bias: -0.5 },
+        hidden2: { w1: -1, w2: 1, bias: -0.5 },
+        outputLogic: 'or',
+        eta: 0.1,
+        epoch: 0,
+        step: 0,
+        trainingData: [],
+        isTraining: false,
+      };
+
+      // Training data sets
+      const datasets = {
+        and: {
+          data: [
+            { x1: 0, x2: 0, target: 0 },
+            { x1: 0, x2: 1, target: 0 },
+            { x1: 1, x2: 0, target: 0 },
+            { x1: 1, x2: 1, target: 1 },
+          ],
+          name: 'AND Gate',
+        },
+        or: {
+          data: [
+            { x1: 0, x2: 0, target: 0 },
+            { x1: 0, x2: 1, target: 1 },
+            { x1: 1, x2: 0, target: 1 },
+            { x1: 1, x2: 1, target: 1 },
+          ],
+          name: 'OR Gate',
+        },
+        xor: {
+          data: [
+            { x1: 0, x2: 0, target: 0 },
+            { x1: 0, x2: 1, target: 1 },
+            { x1: 1, x2: 0, target: 1 },
+            { x1: 1, x2: 1, target: 0 },
+          ],
+          name: 'XOR Gate',
+        },
+        classifier: {
+          data: [
+            { x1: 0.2, x2: 0.3, target: 0 },
+            { x1: 0.4, x2: 0.5, target: 0 },
+            { x1: 0.1, x2: 0.8, target: 0 },
+            { x1: 0.6, x2: 0.9, target: 1 },
+            { x1: 0.8, x2: 0.7, target: 1 },
+            { x1: 0.9, x2: 0.4, target: 1 },
+          ],
+          name: '2D Linear Classifier',
+        },
+      };
+
+      // Tab switching
+      function switchTab(tabName, el) {
+        document
+          .querySelectorAll('.tab')
+          .forEach(tab => tab.classList.remove('active'));
+        document
+          .querySelectorAll('.tab-content')
+          .forEach(content => content.classList.remove('active'));
+        if (el) {
+          el.classList.add('active');
+        } else {
+          // Fallback for programmatic calls: match button by text
+          const btn = [...document.querySelectorAll('.tab')]
+            .find(b => b.textContent.trim().toLowerCase() === tabName.toLowerCase());
+          if (btn) btn.classList.add('active');
+        }
+        document.getElementById(tabName).classList.add('active');
+
+        // Draw initial network diagram for MADALINE
+        if (tabName === 'madaline') {
+          drawMadalineNetwork();
+        }
+      }
+
+      // Perceptron functions
+      function loadPerceptronExample(example, el) {
+        document
+          .querySelectorAll('#perceptron .example-btn')
+          .forEach(btn => btn.classList.remove('active'));
+        if (el) {
+          el.classList.add('active');
+        } else {
+          // Fallback for non-click invocations (e.g., onload)
+          const btn = [...document.querySelectorAll('#perceptron .example-btn')]
+            .find(b => b.textContent.toLowerCase().includes(example));
+          if (btn) btn.classList.add('active');
+        }
+
+        perceptron.trainingData = [...datasets[example].data];
+        displayTrainingData('p-training-data', perceptron.trainingData);
+
+        // Reset visualization
+        perceptron.currentSample = 0;
+        perceptron.epoch = 0;
+        perceptron.step = 0;
+        perceptron.errors = 0;
+        updatePerceptronDisplay();
+      }
+
+      function initializePerceptron() {
+        perceptron.w1 = parseFloat(document.getElementById('p-w1').value);
+        perceptron.w2 = parseFloat(document.getElementById('p-w2').value);
+        perceptron.bias = parseFloat(document.getElementById('p-bias').value);
+        perceptron.eta = parseFloat(document.getElementById('p-eta').value);
+        perceptron.epoch = 0;
+        perceptron.step = 0;
+        perceptron.errors = 0;
+        perceptron.currentSample = 0;
+
+        // Load default training data if none selected
+        if (perceptron.trainingData.length === 0) {
+          loadPerceptronExample('and');
+        }
+
+        updatePerceptronDisplay();
+        addLog(
+          'p-log',
+          'Perceptron initialized with weights: w₁=' +
+            perceptron.w1.toFixed(3) +
+            ', w₂=' +
+            perceptron.w2.toFixed(3) +
+            ', bias=' +
+            perceptron.bias.toFixed(3),
+          'info'
+        );
+
+        drawDecisionBoundary('p-canvas', perceptron);
+      }
+
+      function stepPerceptron() {
+        if (perceptron.trainingData.length === 0) {
+          initializePerceptron();
+          return;
+        }
+
+        const sample = perceptron.trainingData[perceptron.currentSample];
+
+        // Calculate net input
+        const netInput =
+          perceptron.w1 * sample.x1 +
+          perceptron.w2 * sample.x2 +
+          perceptron.bias;
+        const output = netInput >= 0 ? 1 : 0;
+        const error = sample.target - output;
+
+        // Display calculation
+        const calcHTML = `
+                <strong>Step ${perceptron.step + 1} - Sample ${
+          perceptron.currentSample + 1
+        }</strong><br>
+                Input: (${sample.x1}, ${sample.x2}), Target: ${
+          sample.target
+        }<br><br>
+
+                <strong>Forward Pass:</strong><br>
+                Net = w₁×x₁ + w₂×x₂ + bias<br>
+                Net = ${perceptron.w1.toFixed(3)}×${
+          sample.x1
+        } + ${perceptron.w2.toFixed(3)}×${
+          sample.x2
+        } + ${perceptron.bias.toFixed(3)}<br>
+                Net = ${netInput.toFixed(3)}<br>
+                Output = ${output} (${
+          netInput >= 0 ? 'Net ≥ 0' : 'Net < 0'
+        })<br>
+                Error = ${sample.target} - ${output} = ${error}<br><br>
+
+                <strong>${
+                  error !== 0 ? 'Weight Update:' : 'No Update (Correct!)'
+                }:</strong><br>
+            `;
+
+        if (error !== 0) {
+          perceptron.errors++;
+
+          // Update weights
+          const oldW1 = perceptron.w1;
+          const oldW2 = perceptron.w2;
+          const oldBias = perceptron.bias;
+
+          perceptron.w1 += perceptron.eta * error * sample.x1;
+          perceptron.w2 += perceptron.eta * error * sample.x2;
+          perceptron.bias += perceptron.eta * error;
+
+          const updateHTML =
+            calcHTML +
+            `
+                    w₁ = ${oldW1.toFixed(3)} + ${perceptron.eta}×${error}×${
+              sample.x1
+            } = ${perceptron.w1.toFixed(3)}<br>
+                    w₂ = ${oldW2.toFixed(3)} + ${perceptron.eta}×${error}×${
+              sample.x2
+            } = ${perceptron.w2.toFixed(3)}<br>
+                    bias = ${oldBias.toFixed(3)} + ${
+              perceptron.eta
+            }×${error} = ${perceptron.bias.toFixed(3)}
+                `;
+
+          document.getElementById('p-current-calc').innerHTML = updateHTML;
+          addLog(
+            'p-log',
+            `Sample ${perceptron.currentSample + 1}: Error! Updated weights`,
+            'error'
+          );
+        } else {
+          document.getElementById('p-current-calc').innerHTML =
+            calcHTML + 'Correctly classified!';
+          addLog(
+            'p-log',
+            `Sample ${perceptron.currentSample + 1}: Correct! No update needed`,
+            'success'
+          );
+        }
+
+        // Highlight current row
+        highlightTableRow('p-training-data', perceptron.currentSample);
+
+        perceptron.step++;
+        perceptron.currentSample++;
+
+        if (perceptron.currentSample >= perceptron.trainingData.length) {
+          perceptron.currentSample = 0;
+          perceptron.epoch++;
+          addLog('p-log', `Epoch ${perceptron.epoch} completed`, 'info');
+        }
+
+        updatePerceptronDisplay();
+        drawDecisionBoundary('p-canvas', perceptron);
+      }
+
+      function runPerceptronEpoch() {
+        const speed = parseInt(document.getElementById('p-speed').value);
+        let steps = perceptron.trainingData.length;
+
+        function runStep() {
+          if (steps > 0 && !perceptron.isTraining) {
+            stepPerceptron();
+            steps--;
+            setTimeout(runStep, speed);
+          }
+        }
+
+        runStep();
+      }
+
+      function trainPerceptronComplete() {
+        perceptron.isTraining = true;
+        const maxEpochs = 100;
+        const speed = parseInt(document.getElementById('p-speed').value);
+
+        function trainStep() {
+          if (perceptron.epoch >= maxEpochs) {
+            perceptron.isTraining = false;
+            addLog('p-log', 'Maximum epochs reached!', 'info');
+            return;
+          }
+
+          let epochErrors = 0;
+          for (let i = 0; i < perceptron.trainingData.length; i++) {
+            const sample = perceptron.trainingData[i];
+            const netInput =
+              perceptron.w1 * sample.x1 +
+              perceptron.w2 * sample.x2 +
+              perceptron.bias;
+            const output = netInput >= 0 ? 1 : 0;
+            const error = sample.target - output;
+
+            if (error !== 0) {
+              epochErrors++;
+              perceptron.w1 += perceptron.eta * error * sample.x1;
+              perceptron.w2 += perceptron.eta * error * sample.x2;
+              perceptron.bias += perceptron.eta * error;
+            }
+          }
+
+          perceptron.epoch++;
+          updatePerceptronDisplay();
+          drawDecisionBoundary('p-canvas', perceptron);
+
+          if (epochErrors === 0) {
+            perceptron.isTraining = false;
+            addLog(
+              'p-log',
+              `Converged at epoch ${perceptron.epoch}! All samples correctly classified.`,
+              'success'
+            );
+          } else {
+            setTimeout(trainStep, speed);
+          }
+        }
+
+        trainStep();
+      }
+
+      // ADALINE functions
+      function loadAdalineExample(example, el) {
+        document
+          .querySelectorAll('#adaline .example-btn')
+          .forEach(btn => btn.classList.remove('active'));
+        if (el) {
+          el.classList.add('active');
+        } else {
+          // Fallback for non-click invocations (e.g., onload)
+          const btn = [...document.querySelectorAll('#adaline .example-btn')]
+            .find(b => b.textContent.toLowerCase().includes(example));
+          if (btn) btn.classList.add('active');
+        }
+
+        // Convert targets to -1 and 1 for ADALINE
+        adaline.trainingData = datasets[example].data.map(d => ({
+          ...d,
+          target: d.target === 0 ? -1 : 1,
+        }));
+
+        displayTrainingData('a-training-data', adaline.trainingData);
+        adaline.currentSample = 0;
+        adaline.epoch = 0;
+        adaline.step = 0;
+        adaline.mse = 0;
+        adaline.mseHistory = [];
+        updateAdalineDisplay();
+      }
+
+      function initializeAdaline() {
+        adaline.w1 = parseFloat(document.getElementById('a-w1').value);
+        adaline.w2 = parseFloat(document.getElementById('a-w2').value);
+        adaline.bias = parseFloat(document.getElementById('a-bias').value);
+        adaline.eta = parseFloat(document.getElementById('a-eta').value);
+        adaline.epoch = 0;
+        adaline.step = 0;
+        adaline.mse = 0;
+        adaline.mseHistory = [];
+        adaline.currentSample = 0;
+
+        if (adaline.trainingData.length === 0) {
+          loadAdalineExample('and');
+        }
+
+        updateAdalineDisplay();
+        addLog(
+          'a-log',
+          'ADALINE initialized with weights: w₁=' +
+            adaline.w1.toFixed(3) +
+            ', w₂=' +
+            adaline.w2.toFixed(3) +
+            ', bias=' +
+            adaline.bias.toFixed(3),
+          'info'
+        );
+
+        drawAdalineVisualization();
+      }
+
+      function stepAdaline() {
+        if (adaline.trainingData.length === 0) {
+          initializeAdaline();
+          return;
+        }
+
+        const sample = adaline.trainingData[adaline.currentSample];
+
+        // Calculate linear output (no threshold)
+        const linearOutput =
+          adaline.w1 * sample.x1 + adaline.w2 * sample.x2 + adaline.bias;
+        const error = sample.target - linearOutput; // Key difference: error from linear output!
+
+        // Display calculation
+        const calcHTML = `
+                <strong>Step ${adaline.step + 1} - Sample ${
+          adaline.currentSample + 1
+        }</strong><br>
+                Input: (${sample.x1}, ${sample.x2}), Target: ${
+          sample.target
+        }<br><br>
+
+                <strong>Linear Output (No Threshold):</strong><br>
+                z = w₁×x₁ + w₂×x₂ + bias<br>
+                z = ${adaline.w1.toFixed(3)}×${
+          sample.x1
+        } + ${adaline.w2.toFixed(3)}×${sample.x2} + ${adaline.bias.toFixed(
+          3
+        )}<br>
+                z = ${linearOutput.toFixed(3)}<br>
+                Error = target - z = ${sample.target} - ${linearOutput.toFixed(
+          3
+        )} = ${error.toFixed(3)}<br><br>
+
+                <strong>Weight Update (Always Updates):</strong><br>
+            `;
+
+        // Always update weights (key difference from perceptron)
+        const oldW1 = adaline.w1;
+        const oldW2 = adaline.w2;
+        const oldBias = adaline.bias;
+
+        adaline.w1 += adaline.eta * error * sample.x1;
+        adaline.w2 += adaline.eta * error * sample.x2;
+        adaline.bias += adaline.eta * error;
+
+        const updateHTML =
+          calcHTML +
+          `
+                w₁ = ${oldW1.toFixed(3)} + ${adaline.eta}×${error.toFixed(3)}×${
+            sample.x1
+          } = ${adaline.w1.toFixed(3)}<br>
+                w₂ = ${oldW2.toFixed(3)} + ${adaline.eta}×${error.toFixed(3)}×${
+            sample.x2
+          } = ${adaline.w2.toFixed(3)}<br>
+                bias = ${oldBias.toFixed(3)} + ${adaline.eta}×${error.toFixed(
+            3
+          )} = ${adaline.bias.toFixed(3)}
+            `;
+
+        document.getElementById('a-current-calc').innerHTML = updateHTML;
+
+        const thresholdOutput = linearOutput >= 0 ? 1 : -1;
+        if (thresholdOutput === sample.target) {
+          addLog(
+            'a-log',
+            `Sample ${
+              adaline.currentSample + 1
+            }: Correct classification, small adjustment made`,
+            'success'
+          );
+        } else {
+          addLog(
+            'a-log',
+            `Sample ${
+              adaline.currentSample + 1
+            }: Misclassified, weights adjusted`,
+            'error'
+          );
+        }
+
+        highlightTableRow('a-training-data', adaline.currentSample);
+
+        adaline.step++;
+        adaline.currentSample++;
+
+        if (adaline.currentSample >= adaline.trainingData.length) {
+          adaline.currentSample = 0;
+          adaline.epoch++;
+
+          // Calculate MSE for the epoch
+          let sumSquaredError = 0;
+          for (let sample of adaline.trainingData) {
+            const output =
+              adaline.w1 * sample.x1 + adaline.w2 * sample.x2 + adaline.bias;
+            sumSquaredError += Math.pow(sample.target - output, 2);
+          }
+          adaline.mse = sumSquaredError / adaline.trainingData.length;
+          adaline.mseHistory.push(adaline.mse);
+
+          addLog(
+            'a-log',
+            `Epoch ${adaline.epoch} completed. MSE: ${adaline.mse.toFixed(4)}`,
+            'info'
+          );
+        }
+
+        updateAdalineDisplay();
+        drawAdalineVisualization();
+      }
+
+      function runAdalineEpoch() {
+        const speed = parseInt(document.getElementById('a-speed').value);
+        let steps = adaline.trainingData.length;
+
+        function runStep() {
+          if (steps > 0 && !adaline.isTraining) {
+            stepAdaline();
+            steps--;
+            setTimeout(runStep, speed);
+          }
+        }
+
+        runStep();
+      }
+
+      function trainAdalineComplete() {
+        adaline.isTraining = true;
+        const maxEpochs = 200;
+        const mseThreshold = parseFloat(
+          document.getElementById('a-mse-threshold').value
+        );
+        const speed = parseInt(document.getElementById('a-speed').value);
+
+        function trainStep() {
+          if (adaline.epoch >= maxEpochs) {
+            adaline.isTraining = false;
+            addLog('a-log', 'Maximum epochs reached!', 'info');
+            return;
+          }
+
+          // Train one epoch
+          for (let sample of adaline.trainingData) {
+            const linearOutput =
+              adaline.w1 * sample.x1 + adaline.w2 * sample.x2 + adaline.bias;
+            const error = sample.target - linearOutput;
+
+            adaline.w1 += adaline.eta * error * sample.x1;
+            adaline.w2 += adaline.eta * error * sample.x2;
+            adaline.bias += adaline.eta * error;
+          }
+
+          // Calculate MSE
+          let sumSquaredError = 0;
+          for (let sample of adaline.trainingData) {
+            const output =
+              adaline.w1 * sample.x1 + adaline.w2 * sample.x2 + adaline.bias;
+            sumSquaredError += Math.pow(sample.target - output, 2);
+          }
+          adaline.mse = sumSquaredError / adaline.trainingData.length;
+          adaline.mseHistory.push(adaline.mse);
+
+          adaline.epoch++;
+          updateAdalineDisplay();
+          drawAdalineVisualization();
+
+          if (adaline.mse < mseThreshold) {
+            adaline.isTraining = false;
+            addLog(
+              'a-log',
+              `Converged at epoch ${adaline.epoch}! MSE: ${adaline.mse.toFixed(
+                4
+              )}`,
+              'success'
+            );
+          } else {
+            setTimeout(trainStep, speed);
+          }
+        }
+
+        trainStep();
+      }
+
+      // MADALINE functions
+      function initializeMadaline() {
+        madaline.hidden1.w1 = parseFloat(
+          document.getElementById('m-h1-w1').value
+        );
+        madaline.hidden1.w2 = parseFloat(
+          document.getElementById('m-h1-w2').value
+        );
+        madaline.hidden1.bias = parseFloat(
+          document.getElementById('m-h1-bias').value
+        );
+
+        madaline.hidden2.w1 = parseFloat(
+          document.getElementById('m-h2-w1').value
+        );
+        madaline.hidden2.w2 = parseFloat(
+          document.getElementById('m-h2-w2').value
+        );
+        madaline.hidden2.bias = parseFloat(
+          document.getElementById('m-h2-bias').value
+        );
+
+        madaline.outputLogic = document.getElementById('m-output-logic').value;
+        madaline.eta = parseFloat(document.getElementById('m-eta').value);
+
+        madaline.epoch = 0;
+        madaline.step = 0;
+        madaline.trainingData = [...datasets.xor.data];
+
+        displayTrainingData('m-training-data', madaline.trainingData);
+        updateMadalineDisplay();
+        drawMadalineNetwork();
+        drawMadalineDecisionRegions();
+
+        addLog('m-log', 'MADALINE initialized for XOR problem', 'info');
+        evaluateMadalineNetwork();
+      }
+
+      function stepMadaline() {
+        if (madaline.step >= madaline.trainingData.length) {
+          madaline.step = 0;
+          madaline.epoch++;
+        }
+
+        const sample = madaline.trainingData[madaline.step];
+
+        // Forward pass through hidden units
+        const h1Net =
+          madaline.hidden1.w1 * sample.x1 +
+          madaline.hidden1.w2 * sample.x2 +
+          madaline.hidden1.bias;
+        const h1Output = h1Net >= 0 ? 1 : 0;
+
+        const h2Net =
+          madaline.hidden2.w1 * sample.x1 +
+          madaline.hidden2.w2 * sample.x2 +
+          madaline.hidden2.bias;
+        const h2Output = h2Net >= 0 ? 1 : 0;
+
+        // Output layer
+        let finalOutput;
+        if (madaline.outputLogic === 'or') {
+          finalOutput = h1Output || h2Output ? 1 : 0;
+        } else {
+          finalOutput = h1Output && h2Output ? 1 : 0;
+        }
+
+        const error = sample.target - finalOutput;
+
+        // Display computation
+        const calcHTML = `
+                <strong>Sample ${madaline.step + 1}: (${sample.x1}, ${
+          sample.x2
+        }) → Target: ${sample.target}</strong><br><br>
+
+                <strong>Hidden Unit 1:</strong><br>
+                Net₁ = ${madaline.hidden1.w1.toFixed(2)}×${
+          sample.x1
+        } + ${madaline.hidden1.w2.toFixed(2)}×${
+          sample.x2
+        } + ${madaline.hidden1.bias.toFixed(2)} = ${h1Net.toFixed(3)}<br>
+                Output₁ = ${h1Output}<br><br>
+
+                <strong>Hidden Unit 2:</strong><br>
+                Net₂ = ${madaline.hidden2.w1.toFixed(2)}×${
+          sample.x1
+        } + ${madaline.hidden2.w2.toFixed(2)}×${
+          sample.x2
+        } + ${madaline.hidden2.bias.toFixed(2)} = ${h2Net.toFixed(3)}<br>
+                Output₂ = ${h2Output}<br><br>
+
+                <strong>Output Layer (${madaline.outputLogic.toUpperCase()}):</strong><br>
+                Final Output = ${h1Output} ${madaline.outputLogic.toUpperCase()} ${h2Output} = ${finalOutput}<br>
+                Error = ${error}<br>
+                ${error === 0 ? '✓ Correct!' : '✗ Incorrect'}
+            `;
+
+        document.getElementById('m-current-calc').innerHTML = calcHTML;
+
+        // Update hidden outputs display
+        document.getElementById('m-hidden-outputs').innerHTML = `
+                <div class="weight-item">
+                    <span class="weight-label">Hidden 1:</span>
+                    <span class="weight-value">${h1Output}</span>
+                </div>
+                <div class="weight-item">
+                    <span class="weight-label">Hidden 2:</span>
+                    <span class="weight-value">${h2Output}</span>
+                </div>
+                <div class="weight-item">
+                    <span class="weight-label">Output:</span>
+                    <span class="weight-value">${finalOutput}</span>
+                </div>
+            `;
+
+        highlightTableRow('m-training-data', madaline.step);
+
+        if (error === 0) {
+          addLog(
+            'm-log',
+            `Sample ${madaline.step + 1}: Correct output!`,
+            'success'
+          );
+        } else {
+          addLog(
+            'm-log',
+            `Sample ${madaline.step + 1}: Error detected`,
+            'error'
+          );
+
+          // Simple MR-I training (adjust the unit closest to changing)
+          if (Math.abs(h1Net) < Math.abs(h2Net)) {
+            // Adjust hidden1
+            madaline.hidden1.w1 += madaline.eta * error * sample.x1;
+            madaline.hidden1.w2 += madaline.eta * error * sample.x2;
+            madaline.hidden1.bias += madaline.eta * error;
+          } else {
+            // Adjust hidden2
+            madaline.hidden2.w1 += madaline.eta * error * sample.x1;
+            madaline.hidden2.w2 += madaline.eta * error * sample.x2;
+            madaline.hidden2.bias += madaline.eta * error;
+          }
+        }
+
+        madaline.step++;
+        updateMadalineDisplay();
+        drawMadalineDecisionRegions();
+      }
+
+      function trainMadalineComplete() {
+        for (let epoch = 0; epoch < 50; epoch++) {
+          for (let sample of madaline.trainingData) {
+            stepMadaline();
+          }
+        }
+        evaluateMadalineNetwork();
+      }
+
+      function evaluateMadalineNetwork() {
+        let correct = 0;
+        for (let sample of madaline.trainingData) {
+          const h1Net =
+            madaline.hidden1.w1 * sample.x1 +
+            madaline.hidden1.w2 * sample.x2 +
+            madaline.hidden1.bias;
+          const h1Output = h1Net >= 0 ? 1 : 0;
+
+          const h2Net =
+            madaline.hidden2.w1 * sample.x1 +
+            madaline.hidden2.w2 * sample.x2 +
+            madaline.hidden2.bias;
+          const h2Output = h2Net >= 0 ? 1 : 0;
+
+          let finalOutput;
+          if (madaline.outputLogic === 'or') {
+            finalOutput = h1Output || h2Output ? 1 : 0;
+          } else {
+            finalOutput = h1Output && h2Output ? 1 : 0;
+          }
+
+          if (finalOutput === sample.target) correct++;
+        }
+
+        const accuracy = (correct / madaline.trainingData.length) * 100;
+        document.getElementById('m-accuracy').textContent =
+          accuracy.toFixed(0) + '%';
+
+        if (accuracy === 100) {
+          addLog('m-log', 'XOR problem solved successfully!', 'success');
+        }
+      }
+
+      // Visualization functions
+      function drawDecisionBoundary(canvasId, network) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw decision boundary as gradient
+        const imageData = ctx.createImageData(width, height);
+        const data = imageData.data;
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            const x1 = x / width;
+            const x2 = 1 - y / height;
+
+            const netInput = network.w1 * x1 + network.w2 * x2 + network.bias;
+            const intensity = Math.min(255, Math.max(0, 128 + netInput * 50));
+
+            const index = (y * width + x) * 4;
+            if (netInput >= 0) {
+              data[index] = 102; // R
+              data[index + 1] = 126; // G
+              data[index + 2] = 234; // B
+            } else {
+              data[index] = 245; // R
+              data[index + 1] = 101; // G
+              data[index + 2] = 101; // B
+            }
+            data[index + 3] = 100; // Alpha
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // Draw training points
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+
+        for (let sample of network.trainingData) {
+          const x = sample.x1 * width;
+          const y = (1 - sample.x2) * height;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, 2 * Math.PI);
+
+          if (sample.target === 1) {
+            ctx.fillStyle = '#48bb78';
+          } else {
+            ctx.fillStyle = '#f56565';
+          }
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // Draw decision line
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+
+        if (Math.abs(network.w2) > 0.001) {
+          // y = -(w1/w2)x - (bias/w2)
+          const y1 = -(network.w1 / network.w2) * 0 - network.bias / network.w2;
+          const y2 = -(network.w1 / network.w2) * 1 - network.bias / network.w2;
+
+          ctx.moveTo(0, (1 - y1) * height);
+          ctx.lineTo(width, (1 - y2) * height);
+        } else {
+          // Vertical line
+          const x = -network.bias / network.w1;
+          ctx.moveTo(x * width, 0);
+          ctx.lineTo(x * width, height);
+        }
+
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function drawAdalineVisualization() {
+        const canvas = document.getElementById('a-canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Split canvas: MSE plot on left, decision boundary on right
+        const splitX = width / 2;
+
+        // Draw MSE convergence plot
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, splitX, height);
+
+        if (adaline.mseHistory.length > 1) {
+          const maxMSE = Math.max(...adaline.mseHistory);
+          const padding = 40;
+
+          // Draw axes
+          ctx.strokeStyle = '#333';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(padding, height - padding);
+          ctx.lineTo(padding, padding);
+          ctx.moveTo(padding, height - padding);
+          ctx.lineTo(splitX - padding, height - padding);
+          ctx.stroke();
+
+          // Draw MSE curve
+          ctx.strokeStyle = '#667eea';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+
+          for (let i = 0; i < adaline.mseHistory.length; i++) {
+            const x =
+              padding +
+              (i / (adaline.mseHistory.length - 1)) * (splitX - 2 * padding);
+            const y =
+              height -
+              padding -
+              (adaline.mseHistory[i] / maxMSE) * (height - 2 * padding);
+
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // Labels
+          ctx.fillStyle = '#333';
+          ctx.font = '12px Arial';
+          ctx.fillText('MSE', 10, 20);
+          ctx.fillText('Epochs', splitX / 2 - 20, height - 10);
+        }
+
+        // Draw decision boundary on right
+        const boundaryData = ctx.createImageData(splitX, height);
+        const data = boundaryData.data;
+
+        for (let x = 0; x < splitX; x++) {
+          for (let y = 0; y < height; y++) {
+            const x1 = x / splitX;
+            const x2 = 1 - y / height;
+
+            const netInput = adaline.w1 * x1 + adaline.w2 * x2 + adaline.bias;
+
+            const index = (y * splitX + x) * 4;
+            if (netInput >= 0) {
+              data[index] = 102;
+              data[index + 1] = 126;
+              data[index + 2] = 234;
+            } else {
+              data[index] = 245;
+              data[index + 1] = 101;
+              data[index + 2] = 101;
+            }
+            data[index + 3] = 100;
+          }
+        }
+
+        ctx.putImageData(boundaryData, splitX, 0);
+
+        // Draw training points
+        for (let sample of adaline.trainingData) {
+          const x = splitX + sample.x1 * splitX;
+          const y = (1 - sample.x2) * height;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+
+          if (sample.target === 1) {
+            ctx.fillStyle = '#48bb78';
+          } else {
+            ctx.fillStyle = '#f56565';
+          }
+          ctx.fill();
+          ctx.strokeStyle = '#333';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      function drawMadalineNetwork() {
+        const canvas = document.getElementById('m-network');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Node positions
+        const inputY = height / 2;
+        const hiddenY = height / 2;
+        const outputY = height / 2;
+
+        const inputX1 = 100;
+        const inputX2 = 100;
+        const hiddenX1 = 300;
+        const hiddenX2 = 300;
+        const outputX = 500;
+
+        // Draw connections
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+
+        // Input to hidden connections
+        ctx.beginPath();
+        ctx.moveTo(inputX1, inputY - 40);
+        ctx.lineTo(hiddenX1, hiddenY - 60);
+        ctx.moveTo(inputX1, inputY - 40);
+        ctx.lineTo(hiddenX2, hiddenY + 60);
+        ctx.moveTo(inputX2, inputY + 40);
+        ctx.lineTo(hiddenX1, hiddenY - 60);
+        ctx.moveTo(inputX2, inputY + 40);
+        ctx.lineTo(hiddenX2, hiddenY + 60);
+
+        // Hidden to output connections
+        ctx.moveTo(hiddenX1, hiddenY - 60);
+        ctx.lineTo(outputX, outputY);
+        ctx.moveTo(hiddenX2, hiddenY + 60);
+        ctx.lineTo(outputX, outputY);
+        ctx.stroke();
+
+        // Draw nodes
+        const drawNode = (x, y, label, color = '#667eea') => {
+          ctx.beginPath();
+          ctx.arc(x, y, 25, 0, 2 * Math.PI);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.strokeStyle = '#333';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, x, y);
+        };
+
+        // Input nodes
+        drawNode(inputX1, inputY - 40, 'x₁', '#48bb78');
+        drawNode(inputX2, inputY + 40, 'x₂', '#48bb78');
+
+        // Hidden nodes
+        drawNode(hiddenX1, hiddenY - 60, 'H₁');
+        drawNode(hiddenX2, hiddenY + 60, 'H₂');
+
+        // Output node
+        drawNode(
+          outputX,
+          outputY,
+          madaline.outputLogic.toUpperCase(),
+          '#f56565'
+        );
+
+        // Labels
+        ctx.fillStyle = '#333';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Input Layer', 100, height - 20);
+        ctx.fillText('Hidden Layer', 300, height - 20);
+        ctx.fillText('Output Layer', 500, height - 20);
+      }
+
+      function drawMadalineDecisionRegions() {
+        const canvas = document.getElementById('m-canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw regions created by hidden units
+        const imageData = ctx.createImageData(width, height);
+        const data = imageData.data;
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            const x1 = x / width;
+            const x2 = 1 - y / height;
+
+            // Hidden unit outputs
+            const h1Net =
+              madaline.hidden1.w1 * x1 +
+              madaline.hidden1.w2 * x2 +
+              madaline.hidden1.bias;
+            const h1Output = h1Net >= 0 ? 1 : 0;
+
+            const h2Net =
+              madaline.hidden2.w1 * x1 +
+              madaline.hidden2.w2 * x2 +
+              madaline.hidden2.bias;
+            const h2Output = h2Net >= 0 ? 1 : 0;
+
+            // Final output
+            let finalOutput;
+            if (madaline.outputLogic === 'or') {
+              finalOutput = h1Output || h2Output ? 1 : 0;
+            } else {
+              finalOutput = h1Output && h2Output ? 1 : 0;
+            }
+
+            const index = (y * width + x) * 4;
+            if (finalOutput === 1) {
+              data[index] = 102;
+              data[index + 1] = 126;
+              data[index + 2] = 234;
+            } else {
+              data[index] = 245;
+              data[index + 1] = 101;
+              data[index + 2] = 101;
+            }
+            data[index + 3] = 150;
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // Draw XOR training points
+        const xorData = datasets.xor.data;
+        for (let sample of xorData) {
+          const x = sample.x1 * width;
+          const y = (1 - sample.x2) * height;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 12, 0, 2 * Math.PI);
+
+          if (sample.target === 1) {
+            ctx.fillStyle = '#48bb78';
+          } else {
+            ctx.fillStyle = '#fff';
+          }
+          ctx.fill();
+          ctx.strokeStyle = '#333';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+
+        // Draw decision boundaries of hidden units
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+
+        // Hidden unit 1 boundary
+        if (Math.abs(madaline.hidden1.w2) > 0.001) {
+          ctx.beginPath();
+          const y1 =
+            -(madaline.hidden1.w1 / madaline.hidden1.w2) * 0 -
+            madaline.hidden1.bias / madaline.hidden1.w2;
+          const y2 =
+            -(madaline.hidden1.w1 / madaline.hidden1.w2) * 1 -
+            madaline.hidden1.bias / madaline.hidden1.w2;
+          ctx.moveTo(0, (1 - y1) * height);
+          ctx.lineTo(width, (1 - y2) * height);
+          ctx.stroke();
+        }
+
+        // Hidden unit 2 boundary
+        if (Math.abs(madaline.hidden2.w2) > 0.001) {
+          ctx.beginPath();
+          const y1 =
+            -(madaline.hidden2.w1 / madaline.hidden2.w2) * 0 -
+            madaline.hidden2.bias / madaline.hidden2.w2;
+          const y2 =
+            -(madaline.hidden2.w1 / madaline.hidden2.w2) * 1 -
+            madaline.hidden2.bias / madaline.hidden2.w2;
+          ctx.moveTo(0, (1 - y1) * height);
+          ctx.lineTo(width, (1 - y2) * height);
+          ctx.stroke();
+        }
+
+        ctx.setLineDash([]);
+      }
+
+      // Helper functions
+      function displayTrainingData(elementId, data) {
+        const element = document.getElementById(elementId);
+        let html =
+          '<table class="data-table"><thead><tr><th>x₁</th><th>x₂</th><th>Target</th><th>Output</th></tr></thead><tbody>';
+
+        for (let i = 0; i < data.length; i++) {
+          html += `<tr id="${elementId}-row-${i}">
+                    <td>${data[i].x1}</td>
+                    <td>${data[i].x2}</td>
+                    <td>${data[i].target}</td>
+                    <td id="${elementId}-output-${i}">-</td>
+                </tr>`;
+        }
+
+        html += '</tbody></table>';
+        element.innerHTML = html;
+      }
+
+      function highlightTableRow(tableId, rowIndex) {
+        document
+          .querySelectorAll(`#${tableId} tr`)
+          .forEach(tr => tr.classList.remove('current-row'));
+        const row = document.querySelector(`#${tableId}-row-${rowIndex}`);
+        if (row) row.classList.add('current-row');
+      }
+
+      function updatePerceptronDisplay() {
+        document.getElementById('p-current-w1').textContent =
+          perceptron.w1.toFixed(3);
+        document.getElementById('p-current-w2').textContent =
+          perceptron.w2.toFixed(3);
+        document.getElementById('p-current-bias').textContent =
+          perceptron.bias.toFixed(3);
+        document.getElementById('p-epoch').textContent = perceptron.epoch;
+        document.getElementById('p-step').textContent = perceptron.step;
+        document.getElementById('p-errors').textContent = perceptron.errors;
+
+        // Calculate accuracy
+        let correct = 0;
+        for (let i = 0; i < perceptron.trainingData.length; i++) {
+          const sample = perceptron.trainingData[i];
+          const netInput =
+            perceptron.w1 * sample.x1 +
+            perceptron.w2 * sample.x2 +
+            perceptron.bias;
+          const output = netInput >= 0 ? 1 : 0;
+
+          document.getElementById(`p-training-data-output-${i}`).textContent =
+            output;
+          if (output === sample.target) correct++;
+        }
+
+        const accuracy =
+          perceptron.trainingData.length > 0
+            ? ((correct / perceptron.trainingData.length) * 100).toFixed(0)
+            : 0;
+        document.getElementById('p-accuracy').textContent = accuracy + '%';
+      }
+
+      function updateAdalineDisplay() {
+        document.getElementById('a-current-w1').textContent =
+          adaline.w1.toFixed(3);
+        document.getElementById('a-current-w2').textContent =
+          adaline.w2.toFixed(3);
+        document.getElementById('a-current-bias').textContent =
+          adaline.bias.toFixed(3);
+        document.getElementById('a-epoch').textContent = adaline.epoch;
+        document.getElementById('a-mse').textContent = adaline.mse.toFixed(4);
+
+        // Calculate accuracy
+        let correct = 0;
+        for (let i = 0; i < adaline.trainingData.length; i++) {
+          const sample = adaline.trainingData[i];
+          const linearOutput =
+            adaline.w1 * sample.x1 + adaline.w2 * sample.x2 + adaline.bias;
+          const output = linearOutput >= 0 ? 1 : -1;
+
+          document.getElementById(`a-training-data-output-${i}`).textContent =
+            output;
+          if (output === sample.target) correct++;
+        }
+
+        const accuracy =
+          adaline.trainingData.length > 0
+            ? ((correct / adaline.trainingData.length) * 100).toFixed(0)
+            : 0;
+        document.getElementById('a-accuracy').textContent = accuracy + '%';
+      }
+
+      function updateMadalineDisplay() {
+        document.getElementById('m-epoch').textContent = madaline.epoch;
+
+        // Update outputs for each sample
+        let correct = 0;
+        for (let i = 0; i < madaline.trainingData.length; i++) {
+          const sample = madaline.trainingData[i];
+
+          const h1Net =
+            madaline.hidden1.w1 * sample.x1 +
+            madaline.hidden1.w2 * sample.x2 +
+            madaline.hidden1.bias;
+          const h1Output = h1Net >= 0 ? 1 : 0;
+
+          const h2Net =
+            madaline.hidden2.w1 * sample.x1 +
+            madaline.hidden2.w2 * sample.x2 +
+            madaline.hidden2.bias;
+          const h2Output = h2Net >= 0 ? 1 : 0;
+
+          let finalOutput;
+          if (madaline.outputLogic === 'or') {
+            finalOutput = h1Output || h2Output ? 1 : 0;
+          } else {
+            finalOutput = h1Output && h2Output ? 1 : 0;
+          }
+
+          const outputElement = document.getElementById(
+            `m-training-data-output-${i}`
+          );
+          if (outputElement) {
+            outputElement.textContent = finalOutput;
+          }
+
+          if (finalOutput === sample.target) correct++;
+        }
+
+        const accuracy =
+          madaline.trainingData.length > 0
+            ? ((correct / madaline.trainingData.length) * 100).toFixed(0)
+            : 0;
+        document.getElementById('m-accuracy').textContent = accuracy + '%';
+      }
+
+      function addLog(logId, message, type = 'info') {
+        const logElement = document.getElementById(logId);
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = message;
+        logElement.insertBefore(entry, logElement.firstChild);
+
+        // Keep only last 20 entries
+        while (logElement.children.length > 20) {
+          logElement.removeChild(logElement.lastChild);
+        }
+      }
+
+      function loadPreset(networkType, preset) {
+        if (!preset) return;
+
+        let w1, w2, bias;
+
+        switch (preset) {
+          case 'small':
+            w1 = 0.1;
+            w2 = 0.1;
+            bias = 0.1;
+            break;
+          case 'large':
+            w1 = 1.0;
+            w2 = 1.0;
+            bias = 1.0;
+            break;
+          case 'random':
+            w1 = Math.random() - 0.5;
+            w2 = Math.random() - 0.5;
+            bias = Math.random() - 0.5;
+            break;
+        }
+
+        if (networkType === 'perceptron') {
+          document.getElementById('p-w1').value = w1.toFixed(2);
+          document.getElementById('p-w2').value = w2.toFixed(2);
+          document.getElementById('p-bias').value = bias.toFixed(2);
+        }
+
+        // Reset the selector
+        document.getElementById('p-preset').value = '';
+      }
+
+      // Initialize on load
+      window.onload = function () {
+        loadPerceptronExample('and');
+        loadAdalineExample('and');
+        madaline.trainingData = [...datasets.xor.data];
+        displayTrainingData('m-training-data', madaline.trainingData);
+        drawMadalineNetwork();
+      };
+    </script>
+  </body>
+</html>
